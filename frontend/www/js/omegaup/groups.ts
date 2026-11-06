@@ -83,7 +83,8 @@ export function getCSVRecords<T extends object>({
       // match the keys of `T`.
       const row: Record<string, string> = {};
       for (const [i, field] of fields.entries()) {
-        if (record[i] === null) {
+        // A row with fewer cells than the header has nothing at record[i].
+        if (record[i] === null || record[i] === undefined) {
           if (requiredFields.has(field)) {
             throw new Error(
               ui.formatString(T.teamsGroupsErrorFieldIsRequired, { field }),

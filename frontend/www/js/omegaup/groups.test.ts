@@ -158,6 +158,34 @@ describe('groups_utils', () => {
       );
     });
 
+    it('Should treat cells missing from a short row as empty', () => {
+      const formattedRecords = getCSVRecords<types.Identity>({
+        fields,
+        records: [['username-1', 'Developer Diana']],
+        requiredFields: identityRequiredFields,
+        optionalFields: identityOptionalFields,
+      });
+
+      expect(formattedRecords).toEqual([
+        { username: 'username-1', name: 'Developer Diana' },
+      ]);
+    });
+
+    it('Should throw error when a short row is missing a required field', () => {
+      expect(() =>
+        getCSVRecords<types.Identity>({
+          fields: ['name', 'username'],
+          records: [['Developer Diana']],
+          requiredFields: identityRequiredFields,
+          optionalFields: identityOptionalFields,
+        }),
+      ).toThrow(
+        ui.formatString(T.teamsGroupsErrorFieldIsRequired, {
+          field: 'username',
+        }),
+      );
+    });
+
     it('Should ignore extra fields that are not required nor optional', () => {
       const formattedRecords = getCSVRecords<types.Identity>({
         fields: fields.concat(['birthday']),
