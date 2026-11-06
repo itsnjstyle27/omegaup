@@ -33,6 +33,63 @@ describe('cases.ts', () => {
     );
   });
 
+  describe('validateAndFixPoints', () => {
+    const groupWithCases = (
+      points: number,
+      cases: { points: number; autoPoints: boolean }[],
+    ) => {
+      const group = generateGroup({
+        name: 'group1',
+        points,
+        autoPoints: false,
+      });
+      group.cases = cases.map((caseParams, i) => ({
+        ...generateCase({ name: `case${i}`, groupID: group.groupID }),
+        ...caseParams,
+      }));
+      store.commit('casesStore/addGroup', group);
+    };
+
+    const fixedPoints = () => {
+      store.commit('casesStore/validateAndFixPoints');
+      return store.state.casesStore.groups[0].cases.map(
+        (_case) => _case.points,
+      );
+    };
+
+    it('Should share the points of a group whose cases all have 0 points', () => {
+      groupWithCases(50, [
+        { points: 0, autoPoints: false },
+        { points: 0, autoPoints: false },
+      ]);
+      expect(fixedPoints()).toEqual([25, 25]);
+    });
+
+    it('Should keep 0 points in a group of 0 points', () => {
+      groupWithCases(0, [
+        { points: 0, autoPoints: false },
+        { points: 0, autoPoints: false },
+      ]);
+      expect(fixedPoints()).toEqual([0, 0]);
+    });
+
+    it('Should keep the ratio of the cases when they do not add up to the group', () => {
+      groupWithCases(100, [
+        { points: 10, autoPoints: false },
+        { points: 40, autoPoints: false },
+      ]);
+      expect(fixedPoints()).toEqual([20, 80]);
+    });
+
+    it('Should leave no points for automatic cases when the others use them all', () => {
+      groupWithCases(100, [
+        { points: 150, autoPoints: false },
+        { points: 0, autoPoints: true },
+      ]);
+      expect(fixedPoints()).toEqual([100, 0]);
+    });
+  });
+
   it('Should save a group to the store', () => {
     const newGroup = generateGroup({ name: 'group1' });
     store.commit('casesStore/addGroup', newGroup);

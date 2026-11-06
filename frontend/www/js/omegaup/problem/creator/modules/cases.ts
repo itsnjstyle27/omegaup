@@ -826,9 +826,12 @@ export function assignMissingPoints(
     }
     if (!groupAutoPoints && fixPoints) {
       if (casesPoints > _group.points) {
+        // The other cases have used up the group, so nothing is left for these.
         const distributionRatio = _group.points / casesPoints;
         _group.cases.forEach((_case) => {
-          _case.points = _case.points * distributionRatio;
+          _case.points = _case.autoPoints
+            ? 0
+            : _case.points * distributionRatio;
         });
       } else {
         if (notDefinedCount !== 0) {
@@ -837,6 +840,11 @@ export function assignMissingPoints(
             if (_case.autoPoints) {
               _case.points = remainingAssignablePoints / notDefinedCount;
             }
+          });
+        } else if (casesPoints === 0) {
+          // There is no ratio to keep between cases that all have 0 points.
+          _group.cases.forEach((_case) => {
+            _case.points = _group.points / _group.cases.length;
           });
         } else {
           const distributionRatio = _group.points / casesPoints;
