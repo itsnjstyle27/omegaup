@@ -39,6 +39,53 @@ describe('ui', () => {
     });
   });
 
+  describe('rankingUsername', () => {
+    const rank = {
+      username: 'omegaUp',
+      name: 'Juan Perez',
+      classname: 'user-rank-unranked',
+      country: 'MX',
+    };
+
+    it('Should show both the username and the name by default', () => {
+      expect(ui.rankingUsername(rank)).toEqual('omegaUp (Juan Perez)');
+    });
+
+    it('Should show only the username', () => {
+      expect(ui.rankingUsername(rank, ui.NameDisplayOptions.Username)).toEqual(
+        'omegaUp',
+      );
+    });
+
+    it('Should show only the name', () => {
+      expect(ui.rankingUsername(rank, ui.NameDisplayOptions.Name)).toEqual(
+        'Juan Perez',
+      );
+    });
+
+    it('Should fall back to the username when there is no name to show', () => {
+      expect(
+        ui.rankingUsername(
+          { ...rank, name: undefined },
+          ui.NameDisplayOptions.Name,
+        ),
+      ).toEqual('omegaUp');
+    });
+
+    it('Should show the suffix of a virtual contestant with only the name', () => {
+      expect(
+        ui.rankingUsername(
+          { ...rank, virtual: true },
+          ui.NameDisplayOptions.Name,
+        ),
+      ).toEqual(
+        ui.formatString(T.virtualSuffix, {
+          username: 'Juan Perez',
+        }),
+      );
+    });
+  });
+
   describe('onDismiss callback via ui.* functions', () => {
     // After each test, hide any visible notification to reset the singleton store
     afterEach(() => {

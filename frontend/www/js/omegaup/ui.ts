@@ -319,7 +319,9 @@ export function rankingUsername(
     !!rank.name &&
     rank.name != rank.username
   ) {
-    username += ` (${escapeString(rank.name)})`;
+    const name = escapeString(rank.name);
+    // With only the name to show, there is no username to put it next to.
+    username = username ? `${username} (${name})` : name;
   }
   if (username.length == 0) {
     // In case we can't use name or don't have it available, fall back to
