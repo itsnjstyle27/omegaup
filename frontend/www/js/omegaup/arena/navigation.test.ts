@@ -402,6 +402,71 @@ describe('navigation.ts', () => {
       expect(maxScoreForProblem).toEqual(0);
     });
 
+    describe('when the runs of a problem have different groups', () => {
+      const makeRun = (scoreByGroup: Record<string, number | null>) =>
+        ({
+          alias: 'sumas',
+          classname: 'user-rank-unranked',
+          country: 'mx',
+          guid: 'abcdef1212',
+          language: 'py3',
+          memory: 0,
+          penalty: 0,
+          runtime: 0,
+          score: 0,
+          score_by_group: scoreByGroup,
+          status: 'ready',
+          submit_delay: 0,
+          time: new Date(0),
+          username: 'omegaup',
+          verdict: 'PA',
+        } as types.Run);
+
+      it('Should not get NaN when a later run does not have a group', () => {
+        expect(
+          getMaxPerGroupScore(
+            [makeRun({ easy: 0.5, hard: 0.2 }), makeRun({ easy: 0.1 })],
+            'sumas',
+            0,
+            1,
+          ),
+        ).toBeCloseTo(0.7);
+      });
+
+      it('Should count a group that the first run does not have', () => {
+        expect(
+          getMaxPerGroupScore(
+            [makeRun({ easy: 0.5 }), makeRun({ easy: 0.1, hard: 0.2 })],
+            'sumas',
+            0,
+            1,
+          ),
+        ).toBeCloseTo(0.7);
+      });
+
+      it('Should count the groups of later runs when the first run has none', () => {
+        expect(
+          getMaxPerGroupScore(
+            [makeRun({}), makeRun({ easy: 0.1, hard: 0.2 })],
+            'sumas',
+            0,
+            1,
+          ),
+        ).toBeCloseTo(0.3);
+      });
+
+      it('Should treat a group without a score as 0', () => {
+        expect(
+          getMaxPerGroupScore(
+            [makeRun({ easy: null }), makeRun({ easy: 0.1 })],
+            'sumas',
+            0,
+            1,
+          ),
+        ).toBeCloseTo(0.1);
+      });
+    });
+
     it('Should max score for a problem when submission verdict is CE', () => {
       const runs: types.Run[] = [
         {

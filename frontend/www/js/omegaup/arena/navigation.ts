@@ -174,30 +174,16 @@ export function getMaxPerGroupScore(
     return previousScore;
   }
 
-  const scoreByGroup = Object.keys(
-    runsWithScoreByGroup[0].score_by_group || {},
-  ).reduce((acc: Record<string, number>, key) => {
-    const values = runsWithScoreByGroup
-      .map((run) => {
-        if (!run.score_by_group) {
-          return 0.0;
-        }
-        return (run.score_by_group[key] as number) * maxScore;
-      })
-      .filter((value) => value !== null)
-      .map((value) => Number(value));
-    acc[key] = Math.max(...values);
-    return acc;
-  }, {});
-
-  const values = Object.values(scoreByGroup);
-
-  // Avoid showing NaN in bestScore value
-  for (const value of values) {
-    if (typeof value === 'undefined') {
-      return 0;
+  // The runs don't all have the same groups, so go over the groups of each one.
+  const scoreByGroup: Record<string, number> = {};
+  for (const run of runsWithScoreByGroup) {
+    for (const [group, score] of Object.entries(run.score_by_group ?? {})) {
+      scoreByGroup[group] = Math.max(
+        scoreByGroup[group] ?? 0,
+        (score ?? 0) * maxScore,
+      );
     }
   }
 
-  return values.reduce((acc, value) => acc + value, 0);
+  return Object.values(scoreByGroup).reduce((acc, value) => acc + value, 0);
 }
